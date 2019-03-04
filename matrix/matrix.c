@@ -113,10 +113,11 @@ int color_override()
         // Initialise set of colors
         for (int i=0; i<kMaxColours; i++) {
                 init_color(i, 0, i*100, 0);
-        };
+        }
+
         // Select special values for lightest color
         init_color(kMaxColours-1, 1000, 1000, 1000);
-        
+
         // Initialise all the colour pairs used for printing text
         for(int i=0; i<kMaxColours; i++) {
                 init_pair(i+1, 0, i);
@@ -153,7 +154,7 @@ void update_matrix(int height, int width)
                                 matrix[i][j].brightness = 0;
                         }
                         if (matrix[i][j].brightness > 0) {
-                                int color_value = (matrix[i][j].brightness*8)/kMaxBrightness;
+                                int color_value = (matrix[i][j].brightness*kMaxColours)/kMaxBrightness;
                                 // Avoid using color pair 0
                                 if (color_value == 0) {
                                         color_value = 1;
