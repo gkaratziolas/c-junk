@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <curses.h>
+#include <string.h>
 #include <time.h>
 
 typedef struct _matrix_char_t {
@@ -14,8 +15,15 @@ typedef struct _matrix_droplet_t {
         int brightness;
 } matrix_droplet_t;
 
-matrix_char_t **matrix;
-matrix_droplet_t *droplets;
+typedef struct _special_char_t {
+        int x;
+        int y;
+        char value;
+} special_char_t;
+
+matrix_char_t    **matrix;
+matrix_droplet_t  *droplets;
+special_char_t    *specials;
 
 // Maximum numnber of supported distinct terminal colours
 const short kMaxColours       = 8;
@@ -30,6 +38,7 @@ void move_droplets(int, int, int);
 void update_matrix(int, int);
 int color_override(void);
 char random_char(void);
+void print_special_chars(int);
 
 int main(int argc, char **argv)
 {
@@ -74,6 +83,20 @@ int main(int argc, char **argv)
                 droplets[i].brightness = kMaxBrightness;
         }
 
+        int len_specials = 0;
+        if (argc > 1) {
+                len_specials = strlen(argv[1]);
+                specials = malloc(len_specials * sizeof(special_char_t));
+
+                int y = height/2;
+                int x0 = (width - len_specials)/2;
+                for (int i=0; i<len_specials; i++) {
+                        specials[i].y = y;
+                        specials[i].x = x0+i;
+                        specials[i].value = argv[1][i];
+                }
+        }
+
         int num_droplets = 0;
         while (1) {
                 usleep(50000);
@@ -81,6 +104,7 @@ int main(int argc, char **argv)
 
                 move_droplets(height, width, num_droplets);
                 update_matrix(height, width);
+                print_special_chars(len_specials);
 
                 if (num_droplets < kMaxDroplets) {
                         if (rand()%2 == 0) {
@@ -124,7 +148,7 @@ int color_override()
         // Select special values for lightest color
         init_color(kMaxColours-1, 1000, 1000, 1000);
         // Select special values for darkest color
-        init_color(0,                0,    0,    0);
+        init_color(0,              100,  100,  100);
 
         // Initialise all the colour pairs used for printing text
         for (int i=0; i<kMaxColours; i++) {
@@ -182,6 +206,23 @@ void update_matrix(int height, int width)
                                 mvaddch(i, j, matrix[i][j].value);
                                 matrix[i][j].brightness--;
                         }
+                }
+        }
+}
+
+void print_special_chars(int len_specials)
+{
+        if (len_specials == 0) {
+                return;
+        }
+        for (int i=0; i<len_specials; i++) {
+                int y = specials[i].y;
+                int x = specials[i].x;
+                if (matrix[y][x].brightness > 0) {
+                        matrix[y][x].brightness = kMaxBrightness;
+                        matrix[y][x].value      = specials[i].value;
+                        attron(COLOR_PAIR(kMaxColours));
+                        mvaddch(y, x, specials[i].value);
                 }
         }
 }
