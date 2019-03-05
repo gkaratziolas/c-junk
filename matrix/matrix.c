@@ -142,11 +142,11 @@ int color_override()
 {
         // Initialise set of colors
         for (int i=0; i<kMaxColours; i++) {
-                init_color(i, 0, (i+2)*100, 0);
+                init_color(i, 100, (i+2)*100, 100);
         }
 
         // Select special values for lightest color
-        init_color(kMaxColours-1, 1000, 1000, 1000);
+        init_color(kMaxColours-1, 500, 1000, 500);
         // Select special values for darkest color
         init_color(0,              100,  100,  100);
 
