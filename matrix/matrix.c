@@ -192,11 +192,6 @@ void update_matrix(int height, int width)
                         if (rand()%kCharUpdatePeriod == 0) {
                                 matrix[i][j].value = random_char();
                         }
-                        if (matrix[i][j].brightness == 1) {
-                                attron(COLOR_PAIR(1));
-                                mvaddch(i, j, ' ');
-                                matrix[i][j].brightness = 0;
-                        }
                         if (matrix[i][j].brightness > 0) {
                                 int color_value = (matrix[i][j].brightness*kMaxColours)/kMaxBrightness;
                                 // Avoid using color pair 0
