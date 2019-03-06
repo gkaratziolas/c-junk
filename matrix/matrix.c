@@ -39,11 +39,13 @@ void update_matrix(int, int);
 int color_override(void);
 char random_char(void);
 void print_special_chars(int);
+void update_special_chars(int, int, int);
 
 int main(int argc, char **argv)
 {
         // Positions for the game window
         int height, width;
+        int height_old, width_old;
         WINDOW *mainwin;
 
         // Allocate memory for the matrix
@@ -72,7 +74,6 @@ int main(int argc, char **argv)
         //attron(A_BOLD);
         curs_set(0);
 
-
         getmaxyx(mainwin, height, width);
         refresh();
         randomise_matrix();
@@ -87,20 +88,20 @@ int main(int argc, char **argv)
         if (argc > 1) {
                 len_specials = strlen(argv[1]);
                 specials = malloc(len_specials * sizeof(special_char_t));
-
-                int y = height/2;
-                int x0 = (width - len_specials)/2;
                 for (int i=0; i<len_specials; i++) {
-                        specials[i].y = y;
-                        specials[i].x = x0+i;
                         specials[i].value = argv[1][i];
                 }
+                update_special_chars(len_specials, height, width);
         }
 
         int num_droplets = 0;
         while (1) {
-                usleep(50000);
                 getmaxyx(mainwin, height, width);
+                if (height != height_old || width != width_old) {
+                        update_special_chars(len_specials, height, width);
+                }
+                height_old = height;
+                width_old = width;
 
                 move_droplets(height, width, num_droplets);
                 update_matrix(height, width);
@@ -113,6 +114,7 @@ int main(int argc, char **argv)
                 }
 
                 refresh();
+                usleep(50000);
         }
 
         // Clean up after ourselves
@@ -207,6 +209,16 @@ void update_matrix(int height, int width)
                                 matrix[i][j].brightness--;
                         }
                 }
+        }
+}
+
+void update_special_chars(int len_specials, int height, int width)
+{
+        int y = height/2;
+        int x0 = (width - len_specials)/2;
+        for (int i=0; i<len_specials; i++) {
+                specials[i].y = y;
+                specials[i].x = x0+i;
         }
 }
 
