@@ -35,9 +35,6 @@ int main(int argc, const char **argv)
         a = list_reverse(a);
         list_delete_item(a, 3);
         list_print(a);
-
-        printf("AAA\n");
-
         list_delete_all(a);
 
         return 0;
@@ -45,20 +42,15 @@ int main(int argc, const char **argv)
 
 struct list_item *new_list(int len)
 {
-        struct list_item *a = malloc(sizeof(struct list_item) * len);
-        int i;
-
-        a->prev  = 0;
+        struct list_item *a = malloc(sizeof(struct list_item));
+        a->prev = 0;
+        a->next = 0;
         a->value = 0;
-        a->next  = a+1;
-        for (i=1; i<len-1; i++) {
-                (a+i)->next  = a+i+1;
-                (a+i)->prev  = a+i-1;
-                (a+i)->value = 0;
+
+        for (int i=0; i<len-1; i++) {
+                list_append(a, 0);
         }
-        (a+i)->next  = 0;
-        (a+i)->value = 0;
-        (a+i)->prev  = a+i-1;
+
         return a;
 }
 
@@ -139,10 +131,10 @@ void list_delete_all(struct list_item *list)
 {
         struct list_item *tmp = list->next;
 
-        while(list != 0) {
-                printf("%d\n", list->value);
+        while(list->next != 0) {
                 free(list);
                 list = tmp;
                 tmp = list->next;
         }
+        free(list);
 }
