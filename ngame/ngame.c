@@ -19,6 +19,7 @@ int main(int argc, char **argv)
                 exit(EXIT_FAILURE);
         }
         noecho();
+        timeout(-1);
         keypad(mainwin, TRUE);
 
         getmaxyx(mainwin, height, width);
@@ -61,6 +62,7 @@ int main(int argc, char **argv)
                 }
                 move(y,x);
                 refresh();
+                usleep(16667);
         }
 
         // Clean up after ourselves
