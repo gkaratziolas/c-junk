@@ -31,6 +31,12 @@ int main(int argc, char **argv)
         int go = 1;
         while (go) {
                 getmaxyx(mainwin, height, width);
+
+                if (y>height-1)
+                        y = height-1;
+                if (x>width-1)
+                        x = width-1;
+
                 c = wgetch(mainwin);
                 switch (c) {
                 case KEY_UP:
