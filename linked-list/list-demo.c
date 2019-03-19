@@ -21,6 +21,14 @@ int main(int argc, const char **argv)
         list_reverse(a);
         list_print(a);
 
+        printf("\nSwap top and bottom...\n");
+        list_swap_values(a, 0, a->length-1);
+        list_print(a);
+
+        printf("\nSwap them back...\n");
+        list_swap_items(a, 0, a->length-1);
+        list_print(a);
+
         printf("\nDeleting 3rd item\n");
         list_delete_item(a, 2);
         list_print(a);

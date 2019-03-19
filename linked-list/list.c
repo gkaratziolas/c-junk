@@ -4,9 +4,6 @@
 #include "list.h"
 
 /*
-struct list_item *list_reverse(struct list_item *list);
-void list_swap_entries(struct list_item *list, int i0, int i1);
-void list_swap_values(struct list_item *list, int i0, int i1);
 void list_shuffle(struct list_item *list);
 */
 
@@ -100,6 +97,55 @@ int list_set_value(struct list *list, int index, int value)
         return 0;
 }
 
+void list_swap_items(struct list *list, int i0, int i1)
+{
+        struct list_item *a, *b, *tmp;
+        a = list_goto_index(list, i0);
+        b = list_goto_index(list, i1);
+
+        if (a->prev != NULL)
+                (a->prev)->next = b;
+        if (a->next != NULL)
+                (a->next)->prev = b;
+        if (b->prev != NULL)
+                (b->prev)->next = a;
+        if (b->next != NULL)
+                (b->next)->prev = a;
+
+        tmp = a->next;
+        a->next = b->next;
+        b->next = tmp;
+
+        tmp = a->prev;
+        a->prev = b->prev;
+        b->prev = tmp;
+
+        if (a->prev == NULL)
+                list->head = a;
+        if (a->next == NULL)
+                list->tail = a;
+        if (b->prev == NULL)
+                list->head = b;
+        if (b->next == NULL)
+                list->tail = b;
+}
+
+void list_swap_values(struct list *list, int i0, int i1)
+{
+        if (i0 == i1)
+                return;
+
+        struct list_item *a, *b;
+        int tmp;
+
+        a = list_goto_index(list, i0);
+        b = list_goto_index(list, i1);
+        
+        tmp = a->value;
+        a->value = b->value;
+        b->value = tmp;
+}
+
 void list_reverse(struct list *list)
 {
         struct list_item *item, *tmp;
@@ -118,45 +164,7 @@ void list_reverse(struct list *list)
         list->tail = tmp;
 }
 
-void list_print(struct list *list)
-{
-        struct list_item *item = list->head;
-        while (item != NULL) {
-                printf("%d\n", item->value);
-                item = item->next;
-        }
-}
-
 /*
-void list_swap_entries(struct list_item *list, int i0, int i1)
-{
-        struct list_item *b, *tmp;
-        b = list_goto_index(list, i0);
-        list = list_goto_index(list, i1);
-
-        tmp = b->next;
-        b->next = list->next;
-        list->next = tmp;
-
-        tmp = b->prev;
-        b->prev = list->prev;
-        list->prev = tmp;
-}
-
-void list_swap_values(struct list_item *list, int i0, int i1)
-{
-        if (i0 == i1)
-                return;
-
-        struct list_item *b = list_goto_index(list, i0);
-        list = list_goto_index(list, i1);
-        int tmp;
-
-        tmp = b->value;
-        b->value = list->value;
-        list->value = tmp;
-}
-
 void list_shuffle(struct list_item *list)
 {
         int j, len;
@@ -167,3 +175,12 @@ void list_shuffle(struct list_item *list)
         }
 }
 */
+
+void list_print(struct list *list)
+{
+        struct list_item *item = list->head;
+        while (item != NULL) {
+                printf("%d\n", item->value);
+                item = item->next;
+        }
+}
