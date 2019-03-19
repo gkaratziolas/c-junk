@@ -14,17 +14,23 @@ struct list {
         struct list_item *tail;
 };
 
-struct list new_list(void);
-void list_append(struct list *list, int value);
+// Creating and destroying lists
+struct list  new_list(void);
+void  list_delete_all(struct list *list);
+
+// Adding to and removing from lists
+void      list_append(struct list *list, int value);
+void list_delete_item(struct list *list, int index);
+
+// Accessing elements
 struct list_item *list_goto_index(struct list *list, int index);
 
+// Print list
 void list_print(struct list *list);
 
 /*
 int list_set_value(struct list_item *list, int index, int value);
 struct list_item *list_reverse(struct list_item *list);
-void list_delete_item(struct list_item *list, int index);
-void list_delete_all(struct list_item *list);
 int list_length(struct list_item *list);
 void list_swap_entries(struct list_item *list, int i0, int i1);
 void list_swap_values(struct list_item *list, int i0, int i1);
@@ -40,6 +46,7 @@ int main(int argc, const char **argv)
                 list_append(&a, i*i);
         }
 
+        list_delete_item(&a, 3);
         list_print(&a);
 
         return 0;
@@ -77,9 +84,38 @@ void list_append(struct list *list, int value)
         list->length++;
 }
 
+void list_delete_item(struct list *list, int index)
+{
+        struct list_item* item = list_goto_index(list, index);
+        if (item->next != NULL)
+                (item->next)->prev = item->prev;
+        if (item->prev != NULL)
+                (item->prev)->next = item->next;
+        free(item);
+}
+
+void list_delete_all(struct list *list)
+{
+        struct list_item *a, *b;
+        a = list->head;
+
+        // If list has no items, free list and return
+        if (a == NULL) {
+                free(list);
+                return;
+        }
+
+        while(a->next != NULL) {
+                b = a->next;
+                free(a);
+                a = b;
+        }
+        free(a);
+        free(list);
+}
+
 struct list_item *list_goto_index(struct list *list, int index)
 {
-
         if (list->head == NULL)
                 return NULL;
 
@@ -138,37 +174,6 @@ struct list_item *list_reverse(struct list_item *list)
         list->next = list->prev;
         list->prev = tmp;
         return list;
-}
-
-void list_print(struct list_item *list)
-{
-        printf("%d\n", list->value);
-        while(list->next != 0) {
-                list = list->next;
-                printf("%d\n", list->value);
-        }
-}
-
-void list_delete_item(struct list_item *list, int index)
-{
-        list = list_goto_index(list, index);
-        if (list->next != 0)
-                (list->next)->prev = list->prev;
-        if (list->prev != 0)
-                (list->prev)->next = list->next;
-        free(list);
-}
-
-void list_delete_all(struct list_item *list)
-{
-        struct list_item *tmp = list->next;
-
-        while(list->next != 0) {
-                free(list);
-                list = tmp;
-                tmp = list->next;
-        }
-        free(list);
 }
 
 void list_swap_entries(struct list_item *list, int i0, int i1)
