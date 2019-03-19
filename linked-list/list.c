@@ -81,7 +81,7 @@ void list_append(struct list *list, int value)
         new_item->value = value;
         new_item->next  = NULL;
         list->tail = new_item;
-        list->length++;
+        (list->length)++;
 }
 
 void list_delete_item(struct list *list, int index)
@@ -92,6 +92,7 @@ void list_delete_item(struct list *list, int index)
         if (item->prev != NULL)
                 (item->prev)->next = item->next;
         free(item);
+        (list->length)--;
 }
 
 void list_delete_all(struct list *list)
