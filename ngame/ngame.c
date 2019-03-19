@@ -4,7 +4,27 @@
 #include <string.h>
 #include <time.h>
 
-int load_map(char *name);
+char **map;
+
+struct coord {
+        int x;
+        int y;
+};
+
+struct actor {
+        struct coord position;
+        int health;
+        char symbol;
+};
+
+const int  kMapWidth        = 1000;
+const int  kMapHeight       = 1000;
+const int  kMaxPlayerHealth = 10;
+const char kPlayerSymbol    = '@';
+
+struct actor load_map(char *name);
+int player_input(struct actor *player, int c);
+
 int player_x, player_y;
 
 int main(int argc, char **argv)
@@ -12,6 +32,12 @@ int main(int argc, char **argv)
         // Positions for the game window
         int height, width;
         WINDOW *mainwin;
+
+        // Allocate memory for the map
+        map = malloc(kMapHeight * sizeof(char*));
+        for (int y=0; y<kMapHeight; y++) {
+                map[y] = malloc(kMapWidth * sizeof(char));
+        }
 
         // Seed the random number generator        
         srand(time(0));
@@ -24,50 +50,28 @@ int main(int argc, char **argv)
         noecho();
         timeout(-1);
         keypad(mainwin, TRUE);
+        curs_set(0);
 
         getmaxyx(mainwin, height, width);
+
+        struct actor player = load_map("level1.map");
         refresh();
 
-        if (load_map("level1.map") != 0) {
-                printf("Couldn't load map!\n");
-        }
-
-        int c;
-        int x = player_x;
-        int y = player_y;
-        move(y,x);
-        int go = 1;
-        while (go) {
+        int input;
+        while (1) {
                 getmaxyx(mainwin, height, width);
 
-                if (y>height-1)
-                        y = height-1;
-                if (x>width-1)
-                        x = width-1;
-
-                c = wgetch(mainwin);
-                switch (c) {
-                case KEY_UP:
-                        if (y>0)
-                                y--;
-                        break;
-                case KEY_DOWN:
-                        if (y<height-1)
-                                y++;
-                        break;
-                case KEY_LEFT:
-                        if (x>0)
-                                x--;
-                        break;
-                case KEY_RIGHT:
-                        if (x<width-1)
-                                x++;
-                        break;
-                case 'q':
-                        go = 0;
+                input = wgetch(mainwin);
+                if (input == 'q') {
                         break;
                 }
-                move(y,x);
+
+                player_input(&player, input);
+
+                if (map[player.position.y][player.position.x] == 'V') {
+                        player = load_map("level2.map");
+                }
+
                 refresh();
                 usleep(16667);
         }
@@ -80,13 +84,50 @@ int main(int argc, char **argv)
         return EXIT_SUCCESS;
 }
 
-int load_map(char *name)
+int player_input(struct actor *player, int c)
+{
+        int y = player->position.y;
+        int x = player->position.x;
+
+        mvaddch(y, x, map[y][x]);
+
+        switch (c) {
+        case KEY_UP:
+                if (y>0 && map[y-1][x] != '#')
+                        y--;
+                break;
+        case KEY_DOWN:
+                if (y<kMapHeight-1 && map[y+1][x] != '#')
+                        y++;
+                break;
+        case KEY_LEFT:
+                if (x>0 && map[y][x-1] != '#')
+                        x--;
+                break;
+        case KEY_RIGHT:
+                if (x<kMapWidth-1 && map[y][x+1] != '#')
+                        x++;
+                break;
+        }
+
+        mvaddch(y, x, player->symbol);
+        player->position.y = y;
+        player->position.x = x;
+}
+
+struct actor load_map(char *name)
 {
         FILE *fp = fopen(name, "r");
         if (fp == NULL)
-                return -1;
-        char c = (char)fgetc(fp);
+                printf("Can't load map file: %s\n", name);
+
         int x, y;
+        char c = (char)fgetc(fp);
+        struct actor player = {
+                .position = {0,0},
+                .health   = kMaxPlayerHealth,
+                .symbol   = kPlayerSymbol
+        };
 
         x = 0;
         y = 0;
@@ -99,13 +140,16 @@ int load_map(char *name)
                         continue;
                 }
                 if (c == 'P') {
-                        player_y = y;
-                        player_x = x;
+                        player.position.y = y;
+                        player.position.x = x;
                         c = ' ';
                 }
+                map[y][x] = c;
                 mvaddch(y, x, c);
                 c = (char)fgetc(fp);
                 x++;
         }
-        return 0;
+
+        mvaddch(player.position.y, player.position.x, player.symbol);
+        return player;
 }
