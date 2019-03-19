@@ -4,6 +4,9 @@
 #include <string.h>
 #include <time.h>
 
+int load_map(char *name);
+int player_x, player_y;
+
 int main(int argc, char **argv)
 {
         // Positions for the game window
@@ -25,9 +28,13 @@ int main(int argc, char **argv)
         getmaxyx(mainwin, height, width);
         refresh();
 
+        if (load_map("level1.map") != 0) {
+                printf("Couldn't load map!\n");
+        }
+
         int c;
-        int x = 0;
-        int y = 0;
+        int x = player_x;
+        int y = player_y;
         move(y,x);
         int go = 1;
         while (go) {
@@ -71,4 +78,34 @@ int main(int argc, char **argv)
         refresh();
 
         return EXIT_SUCCESS;
+}
+
+int load_map(char *name)
+{
+        FILE *fp = fopen(name, "r");
+        if (fp == NULL)
+                return -1;
+        char c = (char)fgetc(fp);
+        int x, y;
+
+        x = 0;
+        y = 0;
+
+        while (c != EOF) {
+                if (c == '\n') {
+                        x = 0;
+                        y++;
+                        c = (char)fgetc(fp);
+                        continue;
+                }
+                if (c == 'P') {
+                        player_y = y;
+                        player_x = x;
+                        c = ' ';
+                }
+                mvaddch(y, x, c);
+                c = (char)fgetc(fp);
+                x++;
+        }
+        return 0;
 }
