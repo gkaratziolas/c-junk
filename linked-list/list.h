@@ -37,6 +37,7 @@ int list_set_value(struct list *list, int index, int value);
 void list_reverse(struct list *list);
 void list_swap_items(struct list *list, int i0, int i1);
 void list_swap_values(struct list *list, int i0, int i1);
+void list_shuffle(struct list *list);
 
 // Print list
 void list_print(struct list *list);

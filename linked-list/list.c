@@ -3,10 +3,6 @@
 
 #include "list.h"
 
-/*
-void list_shuffle(struct list_item *list);
-*/
-
 struct list *new_list(void)
 {
         struct list *a = malloc(sizeof(struct list));
@@ -164,17 +160,15 @@ void list_reverse(struct list *list)
         list->tail = tmp;
 }
 
-/*
-void list_shuffle(struct list_item *list)
+void list_shuffle(struct list *list)
 {
         int j, len;
-        len = list_length(list);
+        len = list->length;
         for (int i=0; i<len-1; i++) {
                 j = rand()%(len-i) + i;
                 list_swap_values(list, i, j);
         }
 }
-*/
 
 void list_print(struct list *list)
 {
