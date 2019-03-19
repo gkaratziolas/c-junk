@@ -8,83 +8,105 @@ struct list_item {
         struct list_item *prev;
 };
 
-struct list_item *new_list(int len);
-void list_print(struct list_item *list);
-struct list_item *list_goto_index(struct list_item *list, int index);
-struct list_item *list_goto_start(struct list_item *list);
-struct list_item *list_goto_end(struct list_item *list);
+struct list {
+        int length;
+        struct list_item *head;
+        struct list_item *tail;
+};
+
+struct list new_list(void);
+void list_append(struct list *list, int value);
+struct list_item *list_goto_index(struct list *list, int index);
+
+void list_print(struct list *list);
+
+/*
 int list_set_value(struct list_item *list, int index, int value);
 struct list_item *list_reverse(struct list_item *list);
-void list_append(struct list_item *list, int value);
 void list_delete_item(struct list_item *list, int index);
 void list_delete_all(struct list_item *list);
 int list_length(struct list_item *list);
 void list_swap_entries(struct list_item *list, int i0, int i1);
 void list_swap_values(struct list_item *list, int i0, int i1);
 void list_shuffle(struct list_item *list);
+*/
 
 int main(int argc, const char **argv)
 {
         srand(time(0));
-        struct list_item *a = new_list(1);
-        list_set_value(a, 0, 0);
+        struct list a = new_list();
 
-        for (int i=1; i<10; i++) {
-                list_append(a, i*i);
+        for (int i=0; i<10; i++) {
+                list_append(&a, i*i);
         }
-        //a = list_reverse(a);
-        list_shuffle(a);
-        list_print(a);
-        list_delete_all(a);
+
+        list_print(&a);
 
         return 0;
 }
 
-struct list_item *new_list(int len)
+struct list new_list(void)
 {
-        struct list_item *a = malloc(sizeof(struct list_item));
-        a->prev = 0;
-        a->next = 0;
-        a->value = 0;
-
-        for (int i=0; i<len-1; i++) {
-                list_append(a, 0);
-        }
-
+        struct list a = {
+                .head   = NULL,
+                .tail   = NULL,
+                .length = 0
+        };
         return a;
 }
 
-struct list_item *list_goto_index(struct list_item *list, int index)
+void list_append(struct list *list, int value)
 {
+        struct list_item *new_item = malloc(sizeof(struct list_item));
+
+        // If this is the first item, append works differently
+        if (list->length == 0) {
+                // New item is both head and tail of the list
+                list->head = new_item;
+                // Item is first in list, so prev points to NULL
+                new_item->prev = NULL;
+        } else {
+                struct list_item *old_tail = list->tail;
+                old_tail->next = new_item;
+                new_item->prev = old_tail;
+        }
+
+        new_item->value = value;
+        new_item->next  = NULL;
+        list->tail = new_item;
+        list->length++;
+}
+
+struct list_item *list_goto_index(struct list *list, int index)
+{
+
+        if (list->head == NULL)
+                return NULL;
+
+        struct list_item *item = list->head;
         int current = 0;
 
-        list = list_goto_start(list);
         while (current<index) {
-                if (list->next == 0) {
-                        return 0;
+                if (item->next == NULL) {
+                        return NULL;
                 }
-                list = list->next;
+                item = item->next;
                 current++;
         }
-        return list;
+        return item;
 }
 
-struct list_item *list_goto_start(struct list_item *list)
+void list_print(struct list *list)
 {
-        while(list->prev != 0) {
-                list = list->prev;
+        struct list_item *item = list->head;
+        while (item != NULL) {
+                printf("%d\n", item->value);
+                item = item->next;
         }
-        return list;
 }
 
-struct list_item *list_goto_end(struct list_item *list)
-{
-        while(list->next != 0) {
-                list = list->next;
-        }
-        return list;
-}
 
+/*
 int list_length(struct list_item *list)
 {
         int length = 1;
@@ -125,16 +147,6 @@ void list_print(struct list_item *list)
                 list = list->next;
                 printf("%d\n", list->value);
         }
-}
-
-void list_append(struct list_item *list, int value)
-{
-        struct list_item *a = malloc(sizeof(struct list_item));
-        list = list_goto_end(list);
-        list->next = a;
-        a->next = 0;
-        a->prev = list;
-        a->value = value;
 }
 
 void list_delete_item(struct list_item *list, int index)
@@ -197,3 +209,4 @@ void list_shuffle(struct list_item *list)
                 list_swap_values(list, i, j);
         }
 }
+*/
