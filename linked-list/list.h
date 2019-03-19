@@ -22,8 +22,8 @@ struct list {
 /* Publc Function Prototypes */
 
 // Creating and destroying lists
-struct list new_list(void);
-void        del_list(struct list *list);
+struct list *new_list(void);
+void         del_list(struct list *list);
 
 // Adding to and removing from lists
 void list_append(struct list *list, int value);

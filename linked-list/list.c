@@ -11,14 +11,34 @@ void list_swap_values(struct list_item *list, int i0, int i1);
 void list_shuffle(struct list_item *list);
 */
 
-struct list new_list(void)
+struct list *new_list(void)
 {
-        struct list a = {
-                .head   = NULL,
-                .tail   = NULL,
-                .length = 0
-        };
+        struct list *a = malloc(sizeof(struct list));
+        a->head = NULL;
+        a->tail = NULL;
+        a->length = 0;
+
         return a;
+}
+
+void del_list(struct list *list)
+{
+        struct list_item *a, *b;
+        a = list->head;
+
+        // If list has no items, free list and return
+        if (a == NULL) {
+                free(list);
+                return;
+        }
+
+        while(a->next != NULL) {
+                b = a->next;
+                free(a);
+                a = b;
+        }
+        free(a);
+        free(list);
 }
 
 void list_append(struct list *list, int value)
@@ -52,26 +72,6 @@ void list_delete_item(struct list *list, int index)
                 (item->prev)->next = item->next;
         free(item);
         (list->length)--;
-}
-
-void list_delete_all(struct list *list)
-{
-        struct list_item *a, *b;
-        a = list->head;
-
-        // If list has no items, free list and return
-        if (a == NULL) {
-                free(list);
-                return;
-        }
-
-        while(a->next != NULL) {
-                b = a->next;
-                free(a);
-                a = b;
-        }
-        free(a);
-        free(list);
 }
 
 struct list_item *list_goto_index(struct list *list, int index)
