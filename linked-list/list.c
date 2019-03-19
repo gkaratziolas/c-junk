@@ -19,11 +19,12 @@ struct list  new_list(void);
 void  list_delete_all(struct list *list);
 
 // Adding to and removing from lists
-void      list_append(struct list *list, int value);
+void list_append(struct list *list, int value);
 void list_delete_item(struct list *list, int index);
 
 // Accessing elements
 struct list_item *list_goto_index(struct list *list, int index);
+int list_set_value(struct list *list, int index, int value);
 
 // Print list
 void list_print(struct list *list);
@@ -31,7 +32,6 @@ void list_print(struct list *list);
 /*
 int list_set_value(struct list_item *list, int index, int value);
 struct list_item *list_reverse(struct list_item *list);
-int list_length(struct list_item *list);
 void list_swap_entries(struct list_item *list, int i0, int i1);
 void list_swap_values(struct list_item *list, int i0, int i1);
 void list_shuffle(struct list_item *list);
@@ -47,6 +47,7 @@ int main(int argc, const char **argv)
         }
 
         list_delete_item(&a, 3);
+        list_set_value(&a, 3, 100);
         list_print(&a);
 
         return 0;
@@ -133,6 +134,15 @@ struct list_item *list_goto_index(struct list *list, int index)
         return item;
 }
 
+int list_set_value(struct list *list, int index, int value)
+{
+        struct list_item *item = list_goto_index(list, index);
+        if (item == NULL)
+                return -1;
+        item->value = value;
+        return 0;
+}
+
 void list_print(struct list *list)
 {
         struct list_item *item = list->head;
@@ -143,26 +153,9 @@ void list_print(struct list *list)
 }
 
 
+
+
 /*
-int list_length(struct list_item *list)
-{
-        int length = 1;
-        list = list_goto_start(list);
-        while(list->next != 0) {
-                list = list->next;
-                length++;
-        }
-        return length;
-}
-
-int list_set_value(struct list_item *list, int index, int value)
-{
-        list = list_goto_index(list, index);
-        if (list == 0)
-                return -1;
-        list->value = value;
-}
-
 struct list_item *list_reverse(struct list_item *list)
 {
         struct list_item *tmp = list->next;
