@@ -1,8 +1,8 @@
 CC=gcc
 CFLAGS=-std=c99
-OBJ=list
+OBJ=demo
 
-listmake: list.c
-	$(CC) -o $(OBJ) list.c $(CFLAGS)
+listmake: list-demo.c list.c
+	$(CC) -o $(OBJ) list-demo.c list.c $(CFLAGS)
 clean:
 	rm $(OBJ)

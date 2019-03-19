@@ -1,33 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
-struct list_item {
-        int value;
-        struct list_item *next;
-        struct list_item *prev;
-};
-
-struct list {
-        int length;
-        struct list_item *head;
-        struct list_item *tail;
-};
-
-// Creating and destroying lists
-struct list  new_list(void);
-void  list_delete_all(struct list *list);
-
-// Adding to and removing from lists
-void list_append(struct list *list, int value);
-void list_delete_item(struct list *list, int index);
-
-// Accessing elements
-struct list_item *list_goto_index(struct list *list, int index);
-int list_set_value(struct list *list, int index, int value);
-
-// Print list
-void list_print(struct list *list);
+#include "list.h"
 
 /*
 int list_set_value(struct list_item *list, int index, int value);
@@ -36,22 +10,6 @@ void list_swap_entries(struct list_item *list, int i0, int i1);
 void list_swap_values(struct list_item *list, int i0, int i1);
 void list_shuffle(struct list_item *list);
 */
-
-int main(int argc, const char **argv)
-{
-        srand(time(0));
-        struct list a = new_list();
-
-        for (int i=0; i<10; i++) {
-                list_append(&a, i*i);
-        }
-
-        list_delete_item(&a, 3);
-        list_set_value(&a, 3, 100);
-        list_print(&a);
-
-        return 0;
-}
 
 struct list new_list(void)
 {
@@ -151,9 +109,6 @@ void list_print(struct list *list)
                 item = item->next;
         }
 }
-
-
-
 
 /*
 struct list_item *list_reverse(struct list_item *list)
