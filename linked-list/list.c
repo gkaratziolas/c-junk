@@ -4,7 +4,6 @@
 #include "list.h"
 
 /*
-int list_set_value(struct list_item *list, int index, int value);
 struct list_item *list_reverse(struct list_item *list);
 void list_swap_entries(struct list_item *list, int i0, int i1);
 void list_swap_values(struct list_item *list, int i0, int i1);
@@ -101,6 +100,24 @@ int list_set_value(struct list *list, int index, int value)
         return 0;
 }
 
+void list_reverse(struct list *list)
+{
+        struct list_item *item, *tmp;
+        item = list->head;
+
+        while(item != NULL) {
+                tmp = item->next;
+                item->next = item->prev;
+                item->prev = tmp;
+
+                // Go to the "next" (now prev) item
+                item = item->prev;
+        }
+        tmp = list->head;
+        list->head = list->tail;
+        list->tail = tmp;
+}
+
 void list_print(struct list *list)
 {
         struct list_item *item = list->head;
@@ -111,20 +128,6 @@ void list_print(struct list *list)
 }
 
 /*
-struct list_item *list_reverse(struct list_item *list)
-{
-        struct list_item *tmp = list->next;
-        while(tmp != 0) {
-                list->next = list->prev;
-                list->prev = tmp;
-                list = list->prev;
-                tmp  = list->next;
-        }
-        list->next = list->prev;
-        list->prev = tmp;
-        return list;
-}
-
 void list_swap_entries(struct list_item *list, int i0, int i1)
 {
         struct list_item *b, *tmp;

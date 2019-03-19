@@ -17,18 +17,22 @@ int main(int argc, const char **argv)
         }
         list_print(a);
 
+        printf("\nNow in reverse...\n");
+        list_reverse(a);
+        list_print(a);
+
         printf("\nDeleting 3rd item\n");
         list_delete_item(a, 2);
         list_print(a);
 
-        printf("\nAdding 10 random items...\n");
-        for (int i=0; i<10; i++) {
-                list_append(a, rand());
+        printf("\nRandomizing list values...\n");
+        for (int i=0; i<a->length; i++) {
+                list_set_value(a, i, rand());
         }
         list_print(a);
 
-        printf("Setting value manually...\n");
-        list_set_value(a, 3, 100);
+        printf("\nSetting value manually...\n");
+        list_set_value(a, 3, -1234);
         list_print(a);
 
         printf("\nDeleting List\n");
