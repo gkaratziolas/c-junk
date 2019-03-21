@@ -33,7 +33,16 @@ void del_list(struct list *list)
         free(list);
 }
 
-void list_append(struct list *list, int value)
+void list_extend(struct list *list, int elements, int element_size)
+{
+        void *data_pt;
+        for (int i=0; i<elements; i++) {
+                data_pt = malloc(element_size);
+                list_append(list, data_pt);
+        }
+}
+
+void list_append(struct list *list, void *data_pt)
 {
         struct list_element *new_element = malloc(sizeof(struct list_element));
 
@@ -49,7 +58,7 @@ void list_append(struct list *list, int value)
                 new_element->prev = old_tail;
         }
 
-        new_element->value = value;
+        new_element->data_pt = data_pt;
         new_element->next  = NULL;
         list->tail = new_element;
         (list->length)++;
@@ -84,22 +93,13 @@ struct list_element *list_goto_index(struct list *list, int index)
         return element;
 }
 
-int list_get_value(struct list *list, int index)
+void *list_access(struct list *list, int index)
 {
         struct list_element *element = list_goto_index(list, index);
         // TODO: Return something more sensible here! 
         if (element == NULL)
-                return -1;
-        return element->value;
-}
-
-int list_set_value(struct list *list, int index, int value)
-{
-        struct list_element *element = list_goto_index(list, index);
-        if (element == NULL)
-                return -1;
-        element->value = value;
-        return 0;
+                return NULL;
+        return element->data_pt;
 }
 
 void list_swap_elements(struct list *list, int i0, int i1)
@@ -141,14 +141,14 @@ void list_swap_values(struct list *list, int i0, int i1)
                 return;
 
         struct list_element *a, *b;
-        int tmp;
+        void *tmp;
 
         a = list_goto_index(list, i0);
         b = list_goto_index(list, i1);
         
-        tmp = a->value;
-        a->value = b->value;
-        b->value = tmp;
+        tmp = a->data_pt;
+        a->data_pt = b->data_pt;
+        b->data_pt = tmp;
 }
 
 void list_reverse(struct list *list)
@@ -183,7 +183,7 @@ void list_print(struct list *list)
 {
         struct list_element *element = list->head;
         while (element != NULL) {
-                printf("%d\n", element->value);
+                printf("0x%012lx\n", (unsigned long int) element->data_pt);
                 element = element->next;
         }
 }

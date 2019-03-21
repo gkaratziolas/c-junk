@@ -4,6 +4,11 @@
 
 #include "list.h"
 
+struct bum {
+        int a;
+        int b;
+};
+
 int main(int argc, const char **argv)
 {
         srand(time(0));
@@ -11,47 +16,27 @@ int main(int argc, const char **argv)
         printf("Creating new list...\n");
         struct list *a = new_list();
 
-        printf("Adding first 10 squares to list...\n");
-        for (int i=0; i<10; i++) {
-                list_append(a, i*i);
-        }
-        list_print(a);
-
-        printf("\nNow in reverse...\n");
-        list_reverse(a);
-        list_print(a);
-
-        printf("\nSwap top and bottom...\n");
-        list_swap_values(a, 0, a->length-1);
-        list_print(a);
-
-        printf("\nSwap them back...\n");
-        list_swap_elements(a, 0, a->length-1);
-        list_print(a);
-
-        printf("\nShuffle the list...\n");
-        list_shuffle(a);
-        list_print(a);
-
-        printf("\nDeleting 3rd element\n");
-        list_delete_element(a, 2);
-        list_print(a);
-
-        printf("\nRandomizing list values...\n");
+        list_extend(a, 3, sizeof(struct bum));
         for (int i=0; i<a->length; i++) {
-                list_set_value(a, i, rand());
+                (((struct bum *)list_access(a,i))->a = 100*i);
         }
+
+        struct bum x = {
+                .a = 100,
+                .b = 200
+        };
+        struct bum *y;
+
+        list_append(a, &x);
+        y = list_access(a, 0);
+        printf("%d\n", y->a);
         list_print(a);
 
-        int x = list_get_value(a, 0);
-        printf("%d\n", x);
-
-        printf("\nSetting value manually...\n");
-        list_set_value(a, 3, -1234);
-        list_print(a);
-
-        printf("\nDeleting List\n");
-        del_list(a);
+        int data;
+        for (int i=0; i<a->length; i++) {
+                data = ((struct bum *)list_access(a,i))->a;
+                printf("%d\n", data);
+        }
 
         return 0;
 }
