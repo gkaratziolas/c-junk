@@ -15,6 +15,7 @@ struct list_element {
 
 struct list {
         int length;
+        size_t element_size;
         struct list_element *head;
         struct list_element *tail;
 };
@@ -22,11 +23,11 @@ struct list {
 /* Publc Function Prototypes */
 
 // Creating and destroying lists
-struct list *new_list(void);
+struct list *new_list(size_t element_size);
 void         del_list(struct list *list);
 
 // Adding to and removing from lists
-void list_extend(struct list *list, int elements, int element_size);
+void list_extend(struct list *list, int elements);
 void list_append(struct list *list, void *data_pt);
 void list_delete_element(struct list *list, int index);
 

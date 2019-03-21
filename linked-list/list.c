@@ -3,7 +3,7 @@
 
 #include "list.h"
 
-struct list *new_list(void)
+struct list *new_list(size_t element_size)
 {
         struct list *a = malloc(sizeof(struct list));
         a->head = NULL;
@@ -33,11 +33,11 @@ void del_list(struct list *list)
         free(list);
 }
 
-void list_extend(struct list *list, int elements, int element_size)
+void list_extend(struct list *list, int elements)
 {
         void *data_pt;
         for (int i=0; i<elements; i++) {
-                data_pt = malloc(element_size);
+                data_pt = malloc(list->element_size);
                 list_append(list, data_pt);
         }
 }

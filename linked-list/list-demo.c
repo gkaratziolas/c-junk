@@ -4,39 +4,34 @@
 
 #include "list.h"
 
-struct bum {
-        int a;
-        int b;
+struct dude {
+        int x;
+        int y;
+        int health;
+        char symbol;
 };
 
 int main(int argc, const char **argv)
 {
         srand(time(0));
 
-        printf("Creating new list...\n");
-        struct list *a = new_list();
+        struct dude *duuude;
 
-        list_extend(a, 3, sizeof(struct bum));
-        for (int i=0; i<a->length; i++) {
-                (((struct bum *)list_access(a,i))->a = 100*i);
+        struct list *bad_dudes = new_list(sizeof(struct dude));
+        list_extend(bad_dudes, 10);
+        for (int i=0; i<10; i++) {
+                duuude = ((struct dude *)list_access(bad_dudes, i));
+                duuude->x = 0;
+                duuude->y = 0;
+                duuude->health = 10;
+                duuude->symbol = '*';
         }
 
-        struct bum x = {
-                .a = 100,
-                .b = 200
-        };
-        struct bum *y;
+        ((struct dude *)list_access(bad_dudes, 3))->health--;
 
-        list_append(a, &x);
-        y = list_access(a, 0);
-        printf("%d\n", y->a);
-        list_print(a);
-
-        int data;
-        for (int i=0; i<a->length; i++) {
-                data = ((struct bum *)list_access(a,i))->a;
-                printf("%d\n", data);
-        }
+        int health;
+        health = ((struct dude *)list_access(bad_dudes, 3))->health;
+        printf("%d\n", health);
 
         return 0;
 }
