@@ -31,6 +31,7 @@ void list_delete_item(struct list *list, int index);
 
 // Accessing elements
 struct list_item *list_goto_index(struct list *list, int index);
+int list_get_value(struct list *list, int index);
 int list_set_value(struct list *list, int index, int value);
 
 // Altering the list

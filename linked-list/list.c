@@ -84,6 +84,15 @@ struct list_item *list_goto_index(struct list *list, int index)
         return item;
 }
 
+int list_get_value(struct list *list, int index)
+{
+        struct list_item *item = list_goto_index(list, index);
+        // TODO: Return something more sensible here! 
+        if (item == NULL)
+                return -1;
+        return item->value;
+}
+
 int list_set_value(struct list *list, int index, int value)
 {
         struct list_item *item = list_goto_index(list, index);
