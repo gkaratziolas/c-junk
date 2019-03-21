@@ -26,15 +26,15 @@ int main(int argc, const char **argv)
         list_print(a);
 
         printf("\nSwap them back...\n");
-        list_swap_items(a, 0, a->length-1);
+        list_swap_elements(a, 0, a->length-1);
         list_print(a);
 
         printf("\nShuffle the list...\n");
         list_shuffle(a);
         list_print(a);
 
-        printf("\nDeleting 3rd item\n");
-        list_delete_item(a, 2);
+        printf("\nDeleting 3rd element\n");
+        list_delete_element(a, 2);
         list_print(a);
 
         printf("\nRandomizing list values...\n");
@@ -42,6 +42,9 @@ int main(int argc, const char **argv)
                 list_set_value(a, i, rand());
         }
         list_print(a);
+
+        int x = list_get_value(a, 0);
+        printf("%d\n", x);
 
         printf("\nSetting value manually...\n");
         list_set_value(a, 3, -1234);
