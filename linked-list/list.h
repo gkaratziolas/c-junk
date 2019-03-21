@@ -7,16 +7,16 @@
 #ifndef LIST_H
 #define LIST_H
 
-struct list_item {
+struct list_element {
         int value;
-        struct list_item *next;
-        struct list_item *prev;
+        struct list_element *next;
+        struct list_element *prev;
 };
 
 struct list {
         int length;
-        struct list_item *head;
-        struct list_item *tail;
+        struct list_element *head;
+        struct list_element *tail;
 };
 
 /* Publc Function Prototypes */
@@ -27,16 +27,16 @@ void         del_list(struct list *list);
 
 // Adding to and removing from lists
 void list_append(struct list *list, int value);
-void list_delete_item(struct list *list, int index);
+void list_delete_element(struct list *list, int index);
 
 // Accessing elements
-struct list_item *list_goto_index(struct list *list, int index);
+struct list_element *list_goto_index(struct list *list, int index);
 int list_get_value(struct list *list, int index);
 int list_set_value(struct list *list, int index, int value);
 
 // Altering the list
 void list_reverse(struct list *list);
-void list_swap_items(struct list *list, int i0, int i1);
+void list_swap_elements(struct list *list, int i0, int i1);
 void list_swap_values(struct list *list, int i0, int i1);
 void list_shuffle(struct list *list);
 
