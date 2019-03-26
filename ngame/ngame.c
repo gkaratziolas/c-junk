@@ -4,7 +4,7 @@
 #include <string.h>
 #include <time.h>
 
-char **map;
+#include "list.h"
 
 struct coord {
         int x;
@@ -16,6 +16,9 @@ struct actor {
         int health;
         char symbol;
 };
+
+char **map;
+struct list *bad_dudes;
 
 const int  kMapWidth        = 1000;
 const int  kMapHeight       = 1000;
