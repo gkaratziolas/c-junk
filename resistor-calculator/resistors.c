@@ -31,8 +31,9 @@ double dabs(double a)
 
 void nearest_ratio(double target, double *series, int series_length)
 {
-        int inverse = 0;
         double original_target = target;
+
+        int inverse = 0;
         if (target < 1) {
                 inverse = 1;
                 target = 1 / target;
@@ -59,11 +60,10 @@ void nearest_ratio(double target, double *series, int series_length)
                 }
         }
 
-
         double R1, R2, ratio, error;
         if (inverse) {
-                R1 = scale * series[nearest_j];
-                R2 = series[nearest_i];
+                R1 = series[nearest_j];
+                R2 = scale * series[nearest_i];
         } else {
                 R1 = scale * series[nearest_i];
                 R2 = series[nearest_j];
