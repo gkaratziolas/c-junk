@@ -1,5 +1,5 @@
-#ifndef FIFO_H_
-#define FIFO_H_
+#ifndef GCODE_READER_H_
+#define GCODE_READER_H_
 
 #include "fifo.h"
 
@@ -44,4 +44,4 @@ int gcode_process_codes(struct fifo *gcode_instruction_fifo,
 
 void gcode_instruction_print(struct gcode_instruction *x);
 
-#endif // FIFO_H_
+#endif // GCODE_READER_H_
