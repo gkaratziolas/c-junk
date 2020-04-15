@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "gcode_reader.h"
 
 char is_letter(char x);
@@ -34,12 +30,6 @@ int gcode_read_line(struct fifo *gcode_instruction_fifo,
         struct fifo gcode_code_fifo = fifo_init(&codes,
                                                 sizeof(struct gcode_code),
                                                 GCODE_MAX_CODES_PER_LINE);
-
-        printf("read: '");
-        for (i = 0; i < str_length; i++) {
-                printf("%c", gcode_string[i]);
-        }
-        printf("'\n");
 
         for (i = 0; i < str_length; i++) {
                 c = gcode_string[i];
@@ -170,7 +160,8 @@ int gcode_process_codes(struct fifo *gcode_instruction_fifo,
         }
         // if M or G, start new command
         if ((tmp_code.variable == 'G') || (tmp_code.variable == 'M')) {
-                memcpy(&(tmp_instruction.code), &tmp_code, sizeof(struct gcode_code));
+                (tmp_instruction.code).value    = tmp_code.value;
+                (tmp_instruction.code).variable = tmp_code.variable;
         } else {
                 // if the line starts with a variable, dump everything
                 return -1;
@@ -183,7 +174,8 @@ int gcode_process_codes(struct fifo *gcode_instruction_fifo,
                 case 'G':
                 case 'M':
                         fifo_push(gcode_instruction_fifo, &tmp_instruction);
-                        memcpy(&(tmp_instruction.code), &tmp_code, sizeof(struct gcode_code));
+                        (tmp_instruction.code).value    = tmp_code.value;
+                        (tmp_instruction.code).variable = tmp_code.variable;
                         (tmp_instruction.variables).F_set = 0;
                         (tmp_instruction.variables).I_set = 0;
                         (tmp_instruction.variables).J_set = 0;
@@ -242,27 +234,9 @@ int gcode_process_codes(struct fifo *gcode_instruction_fifo,
                 }
         }
         fifo_push(gcode_instruction_fifo, &tmp_instruction);
-        memcpy(&(tmp_instruction.code), &tmp_code, sizeof(struct gcode_code));
-
+        (tmp_instruction.code).value    = tmp_code.value;
+        (tmp_instruction.code).variable = tmp_code.variable;
         return 0;
-}
-
-void gcode_instruction_print(struct gcode_instruction *x)
-{
-        printf(" %c%d\n", (x->code).variable, (int)((x->code).value + 0.1f));
-        if ((x->variables).F_set)
-                printf("  F = %f\n", (x->variables).F);
-        if ((x->variables).I_set)
-                printf("  I = %f\n", (x->variables).I);
-        if ((x->variables).J_set)
-                printf("  J = %f\n", (x->variables).J);
-        if ((x->variables).X_set)
-                printf("  X = %f\n", (x->variables).X);
-        if ((x->variables).Y_set)
-                printf("  Y = %f\n", (x->variables).Y);
-        if ((x->variables).Z_set)
-                printf("  Z = %f\n", (x->variables).Z);
-        printf("\n");
 }
 
 // Returns 1 for ascii letter [a-zA-Z], 0 otherwise

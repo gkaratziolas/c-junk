@@ -1,7 +1,9 @@
 #include <stdio.h>
 
-#include "gcode_reader.h"
 #include "fifo.h"
+#include "gcode_reader.h"
+
+void gcode_instruction_print(struct gcode_instruction *x);
 
 int main(int argc, char **argv)
 {
@@ -28,12 +30,20 @@ int main(int argc, char **argv)
                 goto err;
         }
 
+        int i;
         c_pos = 0;
         gcode_string_length = 0;
         while ((c = fgetc(fp)) != EOF) {
                 gcode_string[c_pos] = c;
                 if (c == '\n') {
                         gcode_string_length = c_pos;
+
+                        printf("read: '");
+                        for (i = 0; i < gcode_string_length; i++) {
+                            printf("%c", gcode_string[i]);
+                        }
+                        printf("'\n");
+
                         gcode_read_line(&gcode_instruction_fifo, gcode_string, gcode_string_length);
                         c_pos = 0;
                         while(fifo_pop(&gcode_instruction_fifo, &x) != FIFO_ERR_EMPTY) {
@@ -48,4 +58,22 @@ int main(int argc, char **argv)
         return 0;
 err:
         return -1;
+}
+
+void gcode_instruction_print(struct gcode_instruction *x)
+{
+        printf(" %c%d\n", (x->code).variable, (int)((x->code).value + 0.1f));
+        if ((x->variables).F_set)
+                printf("  F = %f\n", (x->variables).F);
+        if ((x->variables).I_set)
+                printf("  I = %f\n", (x->variables).I);
+        if ((x->variables).J_set)
+                printf("  J = %f\n", (x->variables).J);
+        if ((x->variables).X_set)
+                printf("  X = %f\n", (x->variables).X);
+        if ((x->variables).Y_set)
+                printf("  Y = %f\n", (x->variables).Y);
+        if ((x->variables).Z_set)
+                printf("  Z = %f\n", (x->variables).Z);
+        printf("\n");
 }
