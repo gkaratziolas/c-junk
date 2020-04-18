@@ -24,5 +24,6 @@ int fifo_peek(struct fifo *f, void *data);
 
 int fifo_full(struct fifo *f);
 int fifo_empty(struct fifo *f);
+int fifo_space(struct fifo *f);
 
 #endif //FIFO_H_

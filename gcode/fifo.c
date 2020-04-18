@@ -8,7 +8,7 @@
  * array of the wanted length must be passed to this function. e.g.
  * #define LEN 100;
  * int array[LEN];
- * stuct fifo my_fifo = fifo_init(&(array[0]), sizeof(int), LEN);
+ * stuct fifo my_fifo = fifo_init(array, sizeof(int), LEN);
  */
 struct fifo fifo_init(void *array, size_t element_size, int length)
 {
@@ -77,4 +77,13 @@ int fifo_full(struct fifo *f)
 int fifo_empty(struct fifo *f)
 {
         return ((!f->full) && (f->front == f->back));
+}
+
+int fifo_space(struct fifo *f)
+{
+        if (fifo_empty(f))
+                return f->length;
+        if (f->front > f->back)
+                return f->front - f->back;
+        return f->length - f->back + f->front;
 }
