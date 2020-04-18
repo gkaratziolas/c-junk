@@ -5,43 +5,43 @@
 
 #define GCODE_MAX_STRING_LEN 256
 #define GCODE_MAX_CODES_PER_LINE 100
-#define GCODE_MAX_INSTRUCTIONS 100
 
-struct gcode_code {
-        char variable;
+#define GCODE_MAX_VARS 7
+
+// Supported gcodes
+enum gcode_code {
+        gcode_NONE = 0,
+        // G codes
+        gcode_G00,
+        gcode_G01,
+        gcode_G02,
+        gcode_G03,
+        gcode_G21,
+        gcode_GXX,
+        // M codes
+        gcode_M02,
+        gcode_M03,
+        gcode_M05,
+        gcode_MXX,
+};
+
+struct gcode_word {
+        char name;
         float value;
 };
 
-// Contains all supported variables
-// Potential alternative would be to store fixed-length array of generic variables
-struct gcode_variables {
-        float F; // feed rate
-        float I; // defines X-axis arc centre for cut curve
-        float J; // defines X-axis arc centre for cut curve 
-        float X; // X-position
-        float Y; // Y-position
-        float Z; // Z-position
-
-        unsigned int F_set : 1;
-        unsigned int I_set : 1;
-        unsigned int J_set : 1;
-        unsigned int X_set : 1;
-        unsigned int Y_set : 1;
-        unsigned int Z_set : 1;
-        unsigned int reserved : 2;
+struct gcode_command {
+        enum gcode_code code;
+        struct gcode_word vars[GCODE_MAX_VARS];
 };
 
-struct gcode_instruction {
-        struct gcode_code code;
-        struct gcode_variables variables;
-};
-
-int gcode_read_line(struct fifo *gcode_instruction_fifo,
+int gcode_read_line(struct fifo *gcode_command_fifo,
                     char *gcode_string, int str_length);
-int gcode_read_chunk(struct gcode_code *code, char *gcode_string, int i0, int i1);
-int gcode_process_codes(struct fifo *gcode_instruction_fifo,
+int gcode_read_chunk(struct gcode_word *gword, char *gcode_string, int i0, int i1);
+
+int gcode_process_codes(struct fifo *gcode_command_fifo,
                         struct fifo *gcode_code_fifo);
 
-void gcode_instruction_print(struct gcode_instruction *x);
+int gcode_command_read_var(struct gcode_command *gcommand, char name, float *value);
 
 #endif // GCODE_READER_H_

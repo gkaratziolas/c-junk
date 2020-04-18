@@ -3,7 +3,9 @@
 #include "fifo.h"
 #include "gcode_reader.h"
 
-void gcode_instruction_print(struct gcode_instruction *x);
+#define GCODE_MAX_COMMANDS 100
+
+int gcode_command_print(struct gcode_command *gcommand);
 
 int main(int argc, char **argv)
 {
@@ -13,12 +15,12 @@ int main(int argc, char **argv)
         int gcode_string_length;
         char gcode_string[GCODE_MAX_STRING_LEN];
 
-        struct gcode_instruction x;
+        struct gcode_command x;
 
-        struct gcode_instruction gcode_instructions[GCODE_MAX_INSTRUCTIONS];
-        struct fifo gcode_instruction_fifo = fifo_init(&gcode_instructions,
-                                                   sizeof(struct gcode_instruction),
-                                                   GCODE_MAX_INSTRUCTIONS);
+        struct gcode_command gcommands[GCODE_MAX_COMMANDS];
+        struct fifo gcommand_fifo = fifo_init(gcommands,
+                                              sizeof(struct gcode_command),
+                                              GCODE_MAX_COMMANDS);
 
         if (argc == 1) {
                 goto err;
@@ -40,14 +42,14 @@ int main(int argc, char **argv)
 
                         printf("read: '");
                         for (i = 0; i < gcode_string_length; i++) {
-                            printf("%c", gcode_string[i]);
+                                printf("%c", gcode_string[i]);
                         }
                         printf("'\n");
 
-                        gcode_read_line(&gcode_instruction_fifo, gcode_string, gcode_string_length);
+                        gcode_read_line(&gcommand_fifo, gcode_string, gcode_string_length);
                         c_pos = 0;
-                        while(fifo_pop(&gcode_instruction_fifo, &x) != FIFO_ERR_EMPTY) {
-                                gcode_instruction_print(&x);
+                        while(fifo_pop(&gcommand_fifo, &x) != FIFO_ERR_EMPTY) {
+                                gcode_command_print(&x);
                         }
                 } else {
                         c_pos++;
@@ -60,20 +62,55 @@ err:
         return -1;
 }
 
-void gcode_instruction_print(struct gcode_instruction *x)
+int gcode_command_print(struct gcode_command *gcommand)
 {
-        printf(" %c%d\n", (x->code).variable, (int)((x->code).value + 0.1f));
-        if ((x->variables).F_set)
-                printf("  F = %f\n", (x->variables).F);
-        if ((x->variables).I_set)
-                printf("  I = %f\n", (x->variables).I);
-        if ((x->variables).J_set)
-                printf("  J = %f\n", (x->variables).J);
-        if ((x->variables).X_set)
-                printf("  X = %f\n", (x->variables).X);
-        if ((x->variables).Y_set)
-                printf("  Y = %f\n", (x->variables).Y);
-        if ((x->variables).Z_set)
-                printf("  Z = %f\n", (x->variables).Z);
+        printf("  decode: ");
+        switch (gcommand->code) {
+        case gcode_G00:
+                printf("G00 ");
+                break;
+        case gcode_G01:
+                printf("G01 ");
+                break;
+        case gcode_G02:
+                printf("G02 ");
+                break;
+        case gcode_G03:
+                printf("G03 ");
+                break;
+        case gcode_G21:
+                printf("G21 ");
+                break;
+        case gcode_M02:
+                printf("M02 ");
+                break;
+        case gcode_M03:
+                printf("M03 ");
+                break;
+        case gcode_M05:
+                printf("M05 ");
+                break;
+        case gcode_MXX:
+                printf("Unsupported M command!\n");
+                return -1;
+        case gcode_GXX:
+                printf("Unsupported G command!\n");
+                return -1;
+        case gcode_NONE:
+                printf("Unknown command!\n");
+                return -1;
+        default:
+                printf("Error reading code!\n");
+                return -1;
+        }
+
+        int i;
+        for (i=0; i<GCODE_MAX_VARS; i++) {
+                if (gcommand->vars[i].name == 0) {
+                        break;
+                }
+                printf("%c:%f ", gcommand->vars[i].name, gcommand->vars[i].value);
+        }
         printf("\n");
+        return 0;
 }

@@ -1,9 +1,5 @@
 #include "gcode_reader.h"
 
-char is_letter(char x);
-char is_numerical(char x);
-char upper(char x);
-
 enum gcode_read_state {
         IDLE,
         IN_COMMENT,
@@ -11,8 +7,16 @@ enum gcode_read_state {
         END
 };
 
+void gcode_command_reset(struct gcode_command *gcommand);
+int gcode_command_add_var(struct gcode_command *gcommand, char name, float value);
+enum gcode_code gcode_word_to_code(struct gcode_word *gword);
+
+char is_letter(char x);
+char is_numerical(char x);
+char upper(char x);
+
 // TODO: what happens if fifo overflows? 
-int gcode_read_line(struct fifo *gcode_instruction_fifo,
+int gcode_read_line(struct fifo *gcode_command_fifo,
                     char *gcode_string, int str_length)
 {
         char c;
@@ -24,12 +28,11 @@ int gcode_read_line(struct fifo *gcode_instruction_fifo,
 
         enum gcode_read_state state = IDLE;
 
-        struct gcode_code tmp_code;
-
-        struct gcode_code codes[GCODE_MAX_CODES_PER_LINE];
-        struct fifo gcode_code_fifo = fifo_init(&codes,
-                                                sizeof(struct gcode_code),
-                                                GCODE_MAX_CODES_PER_LINE);
+        struct gcode_word gword;
+        struct gcode_word gwords[GCODE_MAX_CODES_PER_LINE];
+        struct fifo gword_fifo = fifo_init(gwords,
+                                           sizeof(struct gcode_word),
+                                           GCODE_MAX_CODES_PER_LINE);
 
         for (i = 0; i < str_length; i++) {
                 c = gcode_string[i];
@@ -51,17 +54,11 @@ int gcode_read_line(struct fifo *gcode_instruction_fifo,
                         }
                         break;
                 case IN_COMMAND:
-                        if (i == (str_length - 1)) {
+                        if ((i == (str_length - 1)) || (!is_numerical(gcode_string[i+1]))){
                                 // new command found
                                 i1 = i;
-                                syntax_error = gcode_read_chunk(&tmp_code, gcode_string, i0, i1);
-                                fifo_push(&gcode_code_fifo, &tmp_code);
-                                state = IDLE;
-                        } else if (!is_numerical(gcode_string[i+1])) {
-                                // new command found
-                                i1 = i;
-                                syntax_error = gcode_read_chunk(&tmp_code, gcode_string, i0, i1);
-                                fifo_push(&gcode_code_fifo, &tmp_code);
+                                syntax_error = gcode_read_chunk(&gword, gcode_string, i0, i1);
+                                fifo_push(&gword_fifo, &gword);
                                 state = IDLE;
                         }
                         break;
@@ -73,20 +70,21 @@ int gcode_read_line(struct fifo *gcode_instruction_fifo,
                         return syntax_error;
                 }
         }
-        gcode_process_codes(gcode_instruction_fifo, &gcode_code_fifo);
+        gcode_process_codes(gcode_command_fifo, &gword_fifo);
 }
 
 /*
- * Takes a chunk of gcode (e.g "G 01.2 412 ") fills in a code struct
+ * Takes a chunk of gcode (e.g "G 01.2 412 ") fills in a word struct
  * Returns 0 for sucess, otherwise returns 1 + location of syntax error
  */
-int gcode_read_chunk(struct gcode_code *code, char *gcode_string, int i0, int i1)
+int gcode_read_chunk(struct gcode_word *gword, char *gcode_string, int i0, int i1)
 {
         int i = i0;
         float sign = 1;
 
-        code->variable = gcode_string[i0];
-        code->value    = 0;
+        gword->name  = gcode_string[i0];
+        gword->value = 0.f;
+
         i++;
 
         // Ignore any leading whitespace
@@ -130,113 +128,143 @@ int gcode_read_chunk(struct gcode_code *code, char *gcode_string, int i0, int i1
         }
         if (div == 0)
                 div = 1;
-        code->value = (float) (sign * val) / (float) div;
+        gword->value = (float) (sign * val) / (float) div;
         return 0;
 }
 
-int gcode_process_codes(struct fifo *gcode_instruction_fifo,
-                        struct fifo *gcode_code_fifo)
+enum gcode_code gcode_word_to_code(struct gcode_word *gword)
 {
-        struct gcode_instruction tmp_instruction;
-        struct gcode_code tmp_code;
+        int num = (int) (gword->value + 0.1f);
+        if (gword->name == 'G') {
+                switch (num) {
+                case 0:
+                        return gcode_G00;
+                case 1:
+                        return gcode_G01;
+                case 2:
+                        return gcode_G02;
+                case 3:
+                        return gcode_G03;
+                case 21:
+                        return gcode_G21;
+                default:
+                        return gcode_GXX;
+                }
+        }
+        if (gword->name == 'M') {
+                switch (num) {
+                case 2:
+                        return gcode_M02;
+                case 3:
+                        return gcode_M03;
+                case 5:
+                        return gcode_M05;
+                default:
+                        return gcode_MXX;
+                }
+        }
+        return gcode_NONE;
+}
 
-        (tmp_instruction.variables).F_set = 0;
-        (tmp_instruction.variables).I_set = 0;
-        (tmp_instruction.variables).J_set = 0;
-        (tmp_instruction.variables).X_set = 0;
-        (tmp_instruction.variables).Y_set = 0;
-        (tmp_instruction.variables).Z_set = 0;
+int gcode_process_codes(struct fifo *gcommand_fifo, struct fifo *gword_fifo)
+{
+        struct gcode_command gcommand;
+        struct gcode_word    gword;
+
+        gcode_command_reset(&gcommand);
 
         // Decode first code
-        if (fifo_pop(gcode_code_fifo, &tmp_code) == FIFO_ERR_EMPTY) {
+        if (fifo_pop(gword_fifo, &gword) == FIFO_ERR_EMPTY) {
                 return 0;
         }
         // ignore line numbers
         // look for next code
-        if (tmp_code.variable == 'N') {
-                if (fifo_pop(gcode_code_fifo, &tmp_code) == FIFO_ERR_EMPTY) {
+        if (gword.name == 'N') {
+                if (fifo_pop(gword_fifo, &gword) == FIFO_ERR_EMPTY) {
                         return 0;
                 }
         }
         // if M or G, start new command
-        if ((tmp_code.variable == 'G') || (tmp_code.variable == 'M')) {
-                (tmp_instruction.code).value    = tmp_code.value;
-                (tmp_instruction.code).variable = tmp_code.variable;
+        if ((gword.name == 'G') || (gword.name == 'M')) {
+                gcommand.code = gcode_word_to_code(&gword);
         } else {
                 // if the line starts with a variable, dump everything
                 return -1;
         }
 
         // At this point, tmp_instruction contains a valid code
-        while (!fifo_empty(gcode_code_fifo)) {
-                fifo_pop(gcode_code_fifo, &tmp_code);
-                switch(tmp_code.variable) {
+        while (!fifo_empty(gword_fifo)) {
+                fifo_pop(gword_fifo, &gword);
+                switch(gword.name) {
                 case 'G':
                 case 'M':
-                        fifo_push(gcode_instruction_fifo, &tmp_instruction);
-                        (tmp_instruction.code).value    = tmp_code.value;
-                        (tmp_instruction.code).variable = tmp_code.variable;
-                        (tmp_instruction.variables).F_set = 0;
-                        (tmp_instruction.variables).I_set = 0;
-                        (tmp_instruction.variables).J_set = 0;
-                        (tmp_instruction.variables).X_set = 0;
-                        (tmp_instruction.variables).Y_set = 0;
-                        (tmp_instruction.variables).Z_set = 0;
+                        fifo_push(gcommand_fifo, &gcommand);
+                        gcode_command_reset(&gcommand);
+                        gcommand.code = gcode_word_to_code(&gword);
                         break;
                 case 'N':
                         // syntax error, can't have line number in middle of line!
                         return -1;
                 case 'F':
-                        if (((tmp_instruction.variables).F_set == 1) ||
-                            ((tmp_instruction.code).variable != 'G'))
-                                return -1;
-                        (tmp_instruction.variables).F = tmp_code.value;
-                        (tmp_instruction.variables).F_set = 1;
-                        break;
                 case 'I':
-                        if (((tmp_instruction.variables).I_set == 1) ||
-                            ((tmp_instruction.code).variable != 'G'))
-                                return -1;
-                        (tmp_instruction.variables).I = tmp_code.value;
-                        (tmp_instruction.variables).I_set = 1;
-                        break;
                 case 'J':
-                        if (((tmp_instruction.variables).J_set == 1) ||
-                            ((tmp_instruction.code).variable != 'G'))
-                                return -1;
-                        (tmp_instruction.variables).J = tmp_code.value;
-                        (tmp_instruction.variables).J_set = 1;
-                        break;
                 case 'X':
-                        if (((tmp_instruction.variables).X_set == 1) ||
-                            ((tmp_instruction.code).variable != 'G'))
-                                return -1;
-                        (tmp_instruction.variables).X = tmp_code.value;
-                        (tmp_instruction.variables).X_set = 1;
-                        break;
                 case 'Y':
-                        if (((tmp_instruction.variables).Y_set == 1) ||
-                            ((tmp_instruction.code).variable != 'G'))
-                                return -1;
-                        (tmp_instruction.variables).Y = tmp_code.value;
-                        (tmp_instruction.variables).Y_set = 1;
-                        break;
                 case 'Z':
-                        if (((tmp_instruction.variables).Z_set == 1) ||
-                            ((tmp_instruction.code).variable != 'G'))
-                                return -1;
-                        (tmp_instruction.variables).Z = tmp_code.value;
-                        (tmp_instruction.variables).Z_set = 1;
+                        gcode_command_add_var(&gcommand, gword.name, gword.value);
                         break;
                 default:
                         // unsupported variable
                         return -1;
                 }
         }
-        fifo_push(gcode_instruction_fifo, &tmp_instruction);
-        (tmp_instruction.code).value    = tmp_code.value;
-        (tmp_instruction.code).variable = tmp_code.variable;
+        fifo_push(gcommand_fifo, &gcommand);
         return 0;
+}
+
+void gcode_command_reset(struct gcode_command *gcommand)
+{
+        int i;
+        gcommand->code = gcode_NONE;
+        for (i=0; i<GCODE_MAX_VARS; i++) {
+                gcommand->vars[i].name  = 0;
+                gcommand->vars[i].value = 0.f;
+        }
+}
+
+int gcode_command_add_var(struct gcode_command *gcommand, char name, float value)
+{
+        int i;
+        for (i=0; i<GCODE_MAX_VARS; i++) {
+                if (gcommand->vars[i].name == name) {
+                        // variable already defined
+                        return -1;
+                }
+                if (gcommand->vars[i].name == 0) {
+                        // first empty slot found
+                        break;        
+                }
+        }
+        if (i == GCODE_MAX_VARS)  {
+                // no space left
+                return -1;
+        }
+        gcommand->vars[i].name  = name;
+        gcommand->vars[i].value = value;
+        return 0;
+}
+
+int gcode_command_read_var(struct gcode_command *gcommand, char name, float *value)
+{
+        int i;
+        for (i=0; i<GCODE_MAX_VARS; i++) {
+                if (gcommand->vars[i].name == name) {
+                        *value = gcommand->vars[i].value;
+                        return 0;
+                }
+        }
+        // var not found
+        return -1;
 }
 
 // Returns 1 for ascii letter [a-zA-Z], 0 otherwise
