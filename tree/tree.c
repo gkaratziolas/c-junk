@@ -16,7 +16,7 @@ struct node *tree_new_child(struct node *parent)
         // Allocate memory for new child
         struct node *child = malloc(sizeof(struct node));
         if (child == NULL)
-                return NULL
+                return NULL;
 
         // Allocate space for additional child pointer
         struct node **tmp = realloc(parent->children, (parent->num_children+1) * sizeof(struct node*));
@@ -36,48 +36,70 @@ struct node *tree_new_child(struct node *parent)
         return child;
 }
 
-int tree_depth_first_traversal(struct node *root)
+int tree_delete_node(struct node *node)
 {
-        struct node *x = root;
+
+}
+
+int tree_traverse_dfs(struct node *root, void (*callback)(struct node *, struct dfs_context *), void *additional_context)
+{
+        struct node *head = root;
         int max_depth = 16;
-        int *child_indices = malloc(sizeof(child_indices[0]) * max_depth);
+        int *child_index_stack = malloc(sizeof(child_index_stack[0]) * max_depth);
+        int *tmp;
 
         int depth = 0;
-        child_indices[depth] = 0;
+        child_index_stack[depth] = 0;
 
-        // acknowlege root
+        struct dfs_context ctx = {
+                .depth = &depth,
+                .child_index_stack = child_index_stack,
+                .additional_context = additional_context
+        };
+
+        if (callback) {
+                callback(head, &ctx);
+        }
 
         while (1) {
-                // If x has children remaining, increase search depth
-                if (child_indices[depth] < x->num_children) {
+                // If head has children remaining, increase search depth
+                if (child_index_stack[depth] < head->num_children) {
                         // Broken link in tree
-                        if (x->children[child_indices[depth]]->parent != x) {
+                        if (head->children[child_index_stack[depth]]->parent != head) {
+                                free(child_index_stack);
                                 return -1;
                         }
-                        x = x->children[child_indices[depth]];
-                        // acknowlege x
+
+                        head = head->children[child_index_stack[depth]];
                         depth++;
                         if (depth == max_depth) {
-                                int *tmp = realloc(child_indices, sizeof(child_indices[0]) * max_depth * 2);
+                                int *tmp = realloc(child_index_stack, sizeof(child_index_stack[0]) * max_depth * 2);
                                 if (tmp == NULL) {
-                                        free(child_indices);
+                                        free(child_index_stack);
                                         return -1;
                                 }
+                                child_index_stack = tmp;
+                                ctx.child_index_stack = child_index_stack;
                                 max_depth = max_depth * 2;
                         }
-                        child_indices[depth] = 0;
+                        child_index_stack[depth] = 0;
+
+                        if (callback) {
+                                callback(head, &ctx);
+                        }
                         continue;
                 }
                 // Out of children, return to parent
-                if (x->parent == NULL) {
-                        free(child_indices);
+                if (head->parent == NULL) {
+                        free(child_index_stack);
                         return 0;
                 }
-                x = x->parent;
+                head = head->parent;
                 depth--;
-                child_indices[depth]++;
+                child_index_stack[depth]++;
         }
 
-        free(child_indices);
+        free(child_index_stack);
         return 0;
 }
+
