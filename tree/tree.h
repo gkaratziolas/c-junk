@@ -14,7 +14,7 @@ struct node
 };
 
 struct dfs_context {
-        struct stack *dfs_stack;
+        struct stack *stack;
         void *additional_context;
 };
 

@@ -47,7 +47,7 @@ int tree_traverse_dfs(struct node *root, void (*callback)(struct node *, struct 
         stack_push(child_index_stack, &zero);
 
         struct dfs_context ctx = {
-                .dfs_stack = child_index_stack,
+                .stack = child_index_stack,
                 .additional_context = additional_context
         };
 
@@ -56,16 +56,21 @@ int tree_traverse_dfs(struct node *root, void (*callback)(struct node *, struct 
         }
 
         while (1) {
+                stack_top_ptr = (int *)stack_top(child_index_stack);
+
                 // If head has children remaining, push to stack and increase search depth
-                if (*(int *)stack_top(child_index_stack) < head->num_children) {
+                if (*stack_top_ptr < head->num_children) {
                         // Broken link in tree
-                        if (head->children[*(int *)stack_top(child_index_stack)]->parent != head) {
+                        if (head->children[*stack_top_ptr]->parent != head) {
                                 stack_destroy(child_index_stack);
                                 return -1;
                         }
 
-                        head = head->children[*(int *)stack_top(child_index_stack)];
-                        stack_push(child_index_stack, &zero);
+                        head = head->children[*stack_top_ptr];
+                        if (stack_push(child_index_stack, &zero) != 0) {
+                                stack_destroy(child_index_stack);
+                                return -1;
+                        }
 
                         if (callback) {
                                 callback(head, &ctx);
@@ -80,12 +85,10 @@ int tree_traverse_dfs(struct node *root, void (*callback)(struct node *, struct 
                 head = head->parent;
                 stack_pop(child_index_stack, NULL);
                 (*(int *)stack_top(child_index_stack))++;
+                //(*stack_top_ptr)++;
         }
 
         stack_destroy(child_index_stack);
         return 0;
-cleanup:
-        stack_destroy(child_index_stack);
-        return -1;
 }
 
