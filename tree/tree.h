@@ -2,6 +2,9 @@
 #define TREE_H_
 
 #include <stdlib.h>
+#include "stack.h"
+
+#define DFS_INITIAL_STACK_DEPTH 16u
 
 struct node
 {
@@ -11,13 +14,12 @@ struct node
 };
 
 struct dfs_context {
-        const int *depth;
-        const int *child_index_stack;
+        struct stack *dfs_stack;
         void *additional_context;
 };
 
-struct node *new_tree(void);
-struct node *tree_new_child(struct node *parent);
+struct node *tree_create(void);
+struct node *tree_add_child(struct node *parent);
 int tree_traverse_dfs(struct node *root, void (*callback)(struct node *, struct dfs_context *), void * additional_context);
 
 #endif // TREE_H_

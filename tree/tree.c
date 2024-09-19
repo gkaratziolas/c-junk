@@ -1,6 +1,6 @@
 #include "tree.h"
 
-struct node *new_tree(void)
+struct node *tree_create(void)
 {
         struct node *np = malloc(sizeof(struct node));
         if (np == NULL)
@@ -11,7 +11,7 @@ struct node *new_tree(void)
         return np;
 }
 
-struct node *tree_new_child(struct node *parent)
+struct node *tree_add_child(struct node *parent)
 {
         // Allocate memory for new child
         struct node *child = malloc(sizeof(struct node));
@@ -36,24 +36,18 @@ struct node *tree_new_child(struct node *parent)
         return child;
 }
 
-int tree_delete_node(struct node *node)
-{
-
-}
-
 int tree_traverse_dfs(struct node *root, void (*callback)(struct node *, struct dfs_context *), void *additional_context)
 {
         struct node *head = root;
-        int max_depth = 16;
-        int *child_index_stack = malloc(sizeof(child_index_stack[0]) * max_depth);
-        int *tmp;
+        int zero = 0;
 
-        int depth = 0;
-        child_index_stack[depth] = 0;
+        struct stack *child_index_stack = stack_create(sizeof(int), DFS_INITIAL_STACK_DEPTH);
+        int *stack_top_ptr = NULL;
+
+        stack_push(child_index_stack, &zero);
 
         struct dfs_context ctx = {
-                .depth = &depth,
-                .child_index_stack = child_index_stack,
+                .dfs_stack = child_index_stack,
                 .additional_context = additional_context
         };
 
@@ -62,27 +56,16 @@ int tree_traverse_dfs(struct node *root, void (*callback)(struct node *, struct 
         }
 
         while (1) {
-                // If head has children remaining, increase search depth
-                if (child_index_stack[depth] < head->num_children) {
+                // If head has children remaining, push to stack and increase search depth
+                if (*(int *)stack_top(child_index_stack) < head->num_children) {
                         // Broken link in tree
-                        if (head->children[child_index_stack[depth]]->parent != head) {
-                                free(child_index_stack);
+                        if (head->children[*(int *)stack_top(child_index_stack)]->parent != head) {
+                                stack_destroy(child_index_stack);
                                 return -1;
                         }
 
-                        head = head->children[child_index_stack[depth]];
-                        depth++;
-                        if (depth == max_depth) {
-                                int *tmp = realloc(child_index_stack, sizeof(child_index_stack[0]) * max_depth * 2);
-                                if (tmp == NULL) {
-                                        free(child_index_stack);
-                                        return -1;
-                                }
-                                child_index_stack = tmp;
-                                ctx.child_index_stack = child_index_stack;
-                                max_depth = max_depth * 2;
-                        }
-                        child_index_stack[depth] = 0;
+                        head = head->children[*(int *)stack_top(child_index_stack)];
+                        stack_push(child_index_stack, &zero);
 
                         if (callback) {
                                 callback(head, &ctx);
@@ -91,15 +74,18 @@ int tree_traverse_dfs(struct node *root, void (*callback)(struct node *, struct 
                 }
                 // Out of children, return to parent
                 if (head->parent == NULL) {
-                        free(child_index_stack);
+                        stack_destroy(child_index_stack);
                         return 0;
                 }
                 head = head->parent;
-                depth--;
-                child_index_stack[depth]++;
+                stack_pop(child_index_stack, NULL);
+                (*(int *)stack_top(child_index_stack))++;
         }
 
-        free(child_index_stack);
+        stack_destroy(child_index_stack);
         return 0;
+cleanup:
+        stack_destroy(child_index_stack);
+        return -1;
 }
 
