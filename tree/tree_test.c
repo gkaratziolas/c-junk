@@ -5,51 +5,33 @@ void tree_dfs_print(struct node *node, struct dfs_context *ctx);
 
 int main(void)
 {
-        struct node *root = tree_create();
-        struct node *child;
-        child = tree_add_child(root);
-        child = tree_add_child(root);
-        child = tree_add_child(root);
-        child = tree_add_child(root);
-        struct node *child2;
-        child2 = tree_add_child(child);
-        child2 = tree_add_child(child);
-        child2 = tree_add_child(child);
+        struct node *A = tree_create();
+        struct node *B, *C, *D, *E, *F, *G, *H, *I, *J, *K;
 
-        child = tree_add_child(child2);
-        child = tree_add_child(child2);
-        child = tree_add_child(child2);
+        B = tree_add_child(A);
+        C = tree_add_child(A);
+        D = tree_add_child(A);
 
-        child2 = tree_add_child(child);
-        child2 = tree_add_child(child);
-        child2 = tree_add_child(child);
+        E = tree_add_child(B);
+        F = tree_add_child(B);
+        G = tree_add_child(B);
 
-        child = tree_add_child(child2);
-        child = tree_add_child(child2);
-        child = tree_add_child(child2);
+        H = tree_add_child(C);
+        I = tree_add_child(C);
 
-        child2 = tree_add_child(child);
-        child2 = tree_add_child(child);
-        child2 = tree_add_child(child);
+        J = tree_add_child(D);
 
-        child = tree_add_child(child);
-        child = tree_add_child(child);
-        child = tree_add_child(child);
-        child = tree_add_child(child);
-        child = tree_add_child(child);
-        child = tree_add_child(child);
-        child = tree_add_child(child);
-        child = tree_add_child(child);
-        child2 = tree_add_child(child);
-        child2 = tree_add_child(child);
-        child2 = tree_add_child(child);
-        child2 = tree_add_child(child);
-        child = tree_add_child(child);
-        child = tree_add_child(child);
-        child = tree_add_child(child2);
-        child = tree_add_child(child);
-        
-        tree_traverse_dfs(root, tree_dfs_print, NULL);
+        tree_traverse_preorder(A, tree_dfs_print, NULL);
+
+        printf("Num Nodes = %d, Max Depth = %d\n", tree_count_nodes(A), tree_max_depth(A));
+        K = tree_add_child(J);
+        printf("Num Nodes = %d, Max Depth = %d\n", tree_count_nodes(A), tree_max_depth(A));
+
+
+        tree_destroy(A);
+        printf("Num Nodes = %d\n", tree_count_nodes(A));
+        //printf("%d\n\n\n", root->num_children);
+        tree_traverse_preorder(A, tree_dfs_print, NULL);
         return 0;
 }
 
